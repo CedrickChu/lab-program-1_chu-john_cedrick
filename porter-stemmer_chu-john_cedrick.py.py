@@ -1,211 +1,192 @@
-# still Work in Progress
 import re
 import csv
 import pandas as pd
 
 
 class PorterStemmer:
-
     # A consonant will be denoted as c
     @staticmethod
     def _c():
         return '[^aeiou]'
-    #A Vowel will be donoted as v
+    
+     #A Vowel will be donoted as v
     @staticmethod
     def _v():
         return '[aeiouy]'
-
+    
     #consecutive c will be denoted as C
     @staticmethod
     def _C():
-        return f'{PorterStemmer._c()}[^aeiouy]*'
+        return f'{PorterStemmer._c()}+'
 
     #consecutive v will be denoted as V
     @staticmethod
     def _V():
-        return f'{PorterStemmer._v()}[aeiou]*'
+        return f'{PorterStemmer._v()}+'
 
-
+    #m is the number of consecutive _VC in the word
     @staticmethod
-    def _VC():
-        return f'{PorterStemmer._v()}{PorterStemmer._c()}'
-
-
-    @staticmethod
-    def _mgr0():
-        return f'^({PorterStemmer._C()})*({PorterStemmer._VC()})*{PorterStemmer._V()}'
-
-    @staticmethod
-    def _meq1():
-        return f'^({PorterStemmer._C()})*({PorterStemmer._VC()})*({PorterStemmer._VC()})*{PorterStemmer._V()}?'
-
-    @staticmethod
-    def _mgr1():
-        return f'^({PorterStemmer._C()})*({PorterStemmer._VC()})*{PorterStemmer._V()}({PorterStemmer._VC()})*{PorterStemmer._V()}'
-
-    @staticmethod
-    def _hv(word):
-        if re.search(PorterStemmer._V(), word):
-            return "1"
-        return "0"
+    def _calculate_m(w):
+        pattern = re.compile(f'{PorterStemmer._V()}{PorterStemmer._C()}')
+        vc_pairs = pattern.findall(w)
+        return len(vc_pairs)
     
-    @staticmethod
-    def _normalize(w):
-        first = w[0]
-        if first == 'y':
-            w = first.upper() + w[1:]
-        return w.lower().replace('[^a-zA-Z]+', '')
-
+    #Step1 - checking if word has match ending then change it.
     @staticmethod
     def _doStep1a(w):
-        # Define regular expressions for the Step 1a rules
-        re1 = re.compile('^(.+?)(ss|i)es$')
-        re2 = re.compile('^(.+?)([^s])s$')
-
-        if re1.match(w):
-            w = re1.sub(r'\1\2', w)
-        elif re2.match(w):
-            w = re2.sub(r'\1\2', w)
-
+        if re.match('.*sses$', w):
+            return re.sub('sses$', 'ss', w)
+        elif re.match('.*ies$', w):
+            return re.sub('ies$', 'i', w)
+        elif re.match('.*ss$', w):
+            return re.sub('ss$', 'ss', w)
+        elif re.match('.*s$', w):
+            return re.sub('s$', '', w)
+        else:
+            pass
         return w
-
-
-
 
     @staticmethod
     def _doStep1b(w):
-        re1 = re.compile('^(.+?)eed$')
-        re2 = re.compile('^(.+?)(ed|ing)$')
-        if re1.match(w):
-            fp = re1.match(w)
-            re1 = re.compile(PorterStemmer._mgr0())
-            if re1.match(fp[1]):
-                re1 = re.compile('.$')
-                w = re1.sub('', w)
-        elif re2.match(w):
-            fp = re2.match(w)
-            stem = fp[1]
-            re2 = re.compile(PorterStemmer._hv(stem))
-            if re2.match(stem):
-                w = stem
-                re2 = re.compile('(at|bl|iz)$')
-                re3 = re.compile('([^aeiouylsz])\\1$')
-                re4 = re.compile(f'^{PorterStemmer._C()}{PorterStemmer._v()}[^aeiouwxy]$')
-                if re2.match(w):
-                    w += 'e'
-                elif re3.match(w):
-                    re3 = re.compile('.$')
-                    w = re3.sub('', w)
-                elif re4.match(w):
-                    w += 'e'
+        m = PorterStemmer._calculate_m(w)
+        if re.match('.*eed$', w) and m > 0:
+            return re.sub('eed$', 'ee', w)
+        elif re.match(f'.*{PorterStemmer._v()}*ed$', w) and m > 0:
+            return re.sub('ed$', '', w)
+        elif re.match(f'.*{PorterStemmer._v()}*ing$', w) and m > 0:
+            return re.sub('ing$', '', w)
+        elif re.match(f'.*{PorterStemmer._v()}*s$', w) and m > 0:
+            return re.sub('s$', '', w)
+        else:
+            pass
         return w
 
     @staticmethod
     def _doStep1c(w):
-        re1 = re.compile(f'^(.*{PorterStemmer._v()}.*)y$')
-        if re1.match(w):
-            fp = re1.match(w)
-            stem = fp[1]
-            w = stem + 'i'
+        if re.match(f'.*{PorterStemmer._v()}y$', w):
+            return re.sub('y$', 'i', w)
         return w
-
-    @staticmethod
-    def _step2():
-        return {
-            'ational': 'ate',
-            'tional': 'tion',
-            'enci': 'ence',
-            'anci': 'ance',
-            'izer': 'ize',
-            'bli': 'ble',
-            'alli': 'al',
-            'entli': 'ent',
-            'eli': 'e',
-            'ousli': 'ous',
-            'ization': 'ize',
-            'ation': 'ate',
-            'ator': 'ate',
-            'alism': 'al',
-            'iveness': 'ive',
-            'fulness': 'ful',
-            'ousness': 'ous',
-            'aliti': 'al',
-            'iviti': 'ive',
-            'biliti': 'ble',
-            'logi': 'log'
-        }
-
-    @staticmethod
-    def _step3():
-        return {
-            'icate': 'ic',
-            'ative': '',
-            'alize': 'al',
-            'iciti': 'ic',
-            'ical': 'ic',
-            'ful': '',
-            'ness': ''
-        }
-  
-
+        
     @staticmethod
     def _doStep2(w):
-        re1 = re.compile('^(.+?)(ational|tional|enci|anci|izer|bli|alli|entli|eli|ousli|ization|ation|ator|alism|iveness|fulness|ousness|aliti|iviti|biliti|logi)$')
-        if re1.match(w):
-            fp = re1.match(w)
-            stem = fp[1]
-            suffix = fp[2]
-            re1 = re.compile(PorterStemmer._mgr0())
-            if re1.match(stem):
-                w = stem + PorterStemmer._step2()[suffix]
+        m = PorterStemmer._calculate_m(w)
+        if m > 0 and re.match('.*ational$', w):
+            return re.sub('ational$', 'ate', w)
+        elif m > 0 and re.match('.*tional$', w):
+            return re.sub('tional$', 'tion', w)
+        elif m > 0 and re.match('.*enci$', w):
+            return re.sub('enci$', 'ence', w)
+        elif m > 0 and re.match('.*anci$', w):
+            return re.sub('anci$', 'ance', w)
+        elif m > 0 and re.match('.*izer$', w):
+            return re.sub('izer$', 'ize', w)
+        elif m > 0 and re.match('.*abli$', w):
+            return re.sub('abli$', 'able', w)
+        elif m > 0 and re.match('.*ali$', w):
+            return re.sub('ali$', 'al', w)
+        elif m > 0 and re.match('.*entli$', w):
+            return re.sub('entli$', 'ent', w)
+        elif m > 0 and re.match('.*eli$', w):
+            return re.sub('eli$', 'e', w)
+        elif m > 0 and re.match('.*ousli$', w):
+            return re.sub('ousli$', 'ous', w)
+        elif m > 0 and re.match('.*ization$', w):
+            return re.sub('ization$', 'ize', w)
+        elif m > 0 and re.match('.*ations$', w):
+            return re.sub('ations$', 'ate', w)
+        elif m > 0 and re.match('.*ator$', w):
+            return re.sub('ator$', 'ate', w)
+        elif m > 0 and re.match('.*alism$', w):
+            return re.sub('alism$', 'al', w)
+        elif m > 0 and re.match('.*iveness$', w):
+            return re.sub('iveness$', 'ive', w)
+        elif m > 0 and re.match('.*fulness$', w):
+            return re.sub('fulness$', 'ful', w)
+        elif m > 0 and re.match('.*ousness$', w):
+            return re.sub('ousness$', 'ous', w)
+        elif m > 0 and re.match('.*aliti$', w):
+            return re.sub('aliti$', 'al', w)
+        elif m > 0 and re.match('.*iviti$', w):
+            return re.sub('iviti$', 'ive', w)
+        elif m > 0 and re.match('.*biliti$', w):
+            return re.sub('biliti$', 'ble', w)
         return w
-
+        
     @staticmethod
     def _doStep3(w):
-        re1 = re.compile('^(.+?)(icate|ative|alize|iciti|ical|ful|ness)$')
-        if re1.match(w):
-            fp = re1.match(w)
-            stem = fp[1]
-            suffix = fp[2]
-            re1 = re.compile(PorterStemmer._mgr0())
-            if re1.match(stem):
-                w = stem + PorterStemmer._step3()[suffix]
+        m = PorterStemmer._calculate_m(w)
+        if m > 0 and re.match('.*icate$', w):
+            return re.sub('icate$', 'ic', w)
+        elif m > 0 and re.match('.*ative$', w):
+           return re.sub('itive$', '', w)
+        elif m > 0 and re.match('.*alize$', w):
+            return re.sub('alize$', 'al', w)
+        elif m > 0 and re.match('.*iciti$', w):
+            return re.sub('iciti$', 'ic', w)
+        elif m > 0 and re.match('.*ical$', w):
+            return re.sub('ical$', 'ic', w)
+        elif m > 0 and re.match('.*ful$', w):
+            return re.sub('ful$', '', w)
+        elif m > 0 and re.match('.*ness$', w):
+            return re.sub('ness$', '', w)
         return w
-
+    
     @staticmethod
     def _doStep4(w):
-        re1 = re.compile('^(.+?)(al|ance|ence|er|ic|able|ible|ant|ement|ment|ent|ou|ism|ate|iti|ous|ive|ize)$')
-        re2 = re.compile('^(.+?)(s|t)(ion)$')
-        if re1.match(w):
-            fp = re1.match(w)
-            stem = fp[1]
-            re1 = re.compile(PorterStemmer._mgr1())
-            if re1.match(stem):
-                w = stem
-        elif re2.match(w):
-            fp = re2.match(w)
-            stem = fp[1] + fp[2]
-            re2 = re.compile(PorterStemmer._mgr1())
-            if re2.match(stem):
-                w = stem
+        m = PorterStemmer._calculate_m(w)
+        if m > 1 and re.match('.*al$', w):
+            return re.sub('al$', '', w)
+        elif m > 1 and re.match('.*ance$', w):
+            return re.sub('ance$', '', w)
+        elif m > 1 and re.match('.*ence$', w):
+            return re.sub('ence$', '', w)
+        elif m > 1 and re.match('.*er$', w):
+            return re.sub('er$', '', w)
+        elif m > 1 and re.match('.*ic$', w):
+            return re.sub('ic$', '', w)
+        elif m > 1 and re.match('.*able$', w):
+            return re.sub('able$', '', w)
+        elif m > 1 and re.match('.*ible$', w):
+            return re.sub('ible$', '', w)
+        elif m > 1 and re.match('.*ant$', w):
+            return re.sub('ant$', '', w)
+        elif m > 1 and re.match('.*ement$', w):
+            return re.sub('ement$', '', w)
+        elif m > 1 and re.match('.*ment$', w):
+            return re.sub('ment$', '', w)
+        elif m > 1 and re.match('.*(sion|tion)$', w):
+            return re.sub('(sion|tion)$', '', w)
+        elif m > 1 and re.match('.*ou$', w):
+            return re.sub('ou$', '', w)
+        elif m > 1 and re.match('.*ism$', w):
+            return re.sub('ism$', '', w)
+        elif m > 1 and re.match('.*ate$', w):
+            return re.sub('ate$', '', w)
+        elif m > 1 and re.match('.*iti$', w):
+            return re.sub('iti$', '', w)
+        elif m > 1 and re.match('.*ous$', w):
+            return re.sub('ous$', '', w)
+        elif m > 1 and re.match('.*ive$', w):
+            return re.sub('ive$', '', w)
+        elif m > 1 and re.match('.*ize$', w):
+            return re.sub('ize$', '', w)
         return w
 
     @staticmethod
-    def _doStep5(w):
-        re1 = re.compile('^(.+?)e$')
-        if re1.match(w):
-            fp = re1.match(w)
-            stem = fp[1]
-            re1 = re.compile(PorterStemmer._mgr1())
-            re2 = re.compile(PorterStemmer._meq1())
-            re3 = re.compile(f'^{PorterStemmer._C()}{PorterStemmer._v()}[^aeiouwxy]$')
-            if re1.match(stem) or (re2.match(stem) and not re3.match(stem)):
-                w = stem
-        re1 = re.compile('ll$')
-        re2 = re.compile(PorterStemmer._mgr1())
-        if re1.match(w) and re2.match(w):
-            re1 = re.compile('.$')
-            w = re1.sub('', w)
+    def _doStep5a(w):
+        m = PorterStemmer._calculate_m(w)
+        if m > 1 and re.match('.*e$', w) and not re.match('.*o$', w[:-1]):
+            return re.sub('e$', '', w)
+        else:
+            return w
+    
+    @staticmethod
+    def _doStep5b(w):
+        m = PorterStemmer._calculate_m(w)
+        if m > 1 and re.match('.*dd$', w):
+            return re.sub('dd$', 'd', w)
+        elif m > 1 and re.match('.*ll$', w):
+            return re.sub('ll$', 'l', w)
         return w
 
     @staticmethod
@@ -214,24 +195,24 @@ class PorterStemmer:
             return w
 
         steps = [
-            PorterStemmer._normalize,
             PorterStemmer._doStep1a,
             PorterStemmer._doStep1b,
             PorterStemmer._doStep1c,
             PorterStemmer._doStep2,
             PorterStemmer._doStep3,
             PorterStemmer._doStep4,
-            PorterStemmer._doStep5
+            PorterStemmer._doStep5a,
+            PorterStemmer._doStep5b,
         ]
-
         for step in steps:
             w = step(w)
-
         return w
+    
 
 porter = PorterStemmer()
 
 # Create a set of stopwords
+# removing my stopwords.txt to make my output the same as the expected output
 stopwords = set()
 
 # Open the stopwords file with UTF-8 encoding
@@ -242,7 +223,7 @@ with open("stopwords.txt", "r", encoding="utf-8") as stopword_file:
 filtered_tokens = []
 
 # Open the CSV file with UTF-8 encoding
-with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8") as file:
+with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8") as file:  # Corrected the filename
     csv_reader = csv.reader(file)
     
     for row in csv_reader:
@@ -256,13 +237,14 @@ with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8"
             filtered_tokens.extend(filtered_cell_tokens)
 
 # Perform stemming on filtered tokens
+
 stemmed_tokens = [porter.stem(token) for token in filtered_tokens]
 
-# Convert the stemmed tokens back to a string
+
 stemmed_text = ' '.join(stemmed_tokens)
 
 # Create a DataFrame to store the stemmed data
-processed_df = pd.DataFrame({'': [stemmed_text]})
+processed_df = pd.DataFrame({'instruction,context,response,category': [stemmed_text]})
 
 # Specify the path for the output CSV file
 output_file_path = 'stemmed-dataset_15k-rows_chu-john_cedrick.csv'
