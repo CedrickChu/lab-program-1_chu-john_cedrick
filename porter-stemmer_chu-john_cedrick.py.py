@@ -31,7 +31,7 @@ class PorterStemmer:
         vc_pairs = pattern.findall(w)
         return len(vc_pairs)
     
-    #Step1 - checking if word has match ending then change it.
+    # getting rid of -sses -ies or -ss. -s.
     @staticmethod
     def _doStep1a(w):
         if re.match('.*sses$', w):
@@ -45,28 +45,62 @@ class PorterStemmer:
         else:
             pass
         return w
-
+    
+    # getting rid of -eed. -ed. -ing. etc.
     @staticmethod
     def _doStep1b(w):
         m = PorterStemmer._calculate_m(w)
+        step1b2ed = False
+        step1b2ing = False
         if re.match('.*eed$', w) and m > 0:
             return re.sub('eed$', 'ee', w)
         elif re.match(f'.*{PorterStemmer._v()}*ed$', w) and m > 0:
-            return re.sub('ed$', '', w)
+            w = re.sub('ed$', '', w)
+            step1b2ed = True
         elif re.match(f'.*{PorterStemmer._v()}*ing$', w) and m > 0:
-            return re.sub('ing$', '', w)
-        elif re.match(f'.*{PorterStemmer._v()}*s$', w) and m > 0:
-            return re.sub('s$', '', w)
+            step1b2ing = True
+            w = re.sub('ing$', '', w)
+        if step1b2ed:
+            if re.match('.*at$', w):
+                return re.sub('at', 'ate', w)
+            elif re.match('.*bl$', w):
+                return re.sub('bl', 'ble', w)
+            elif re.match('.*iz$', w):
+                return re.sub('iz', 'ize', w)
+            elif re.match('.*s$', w):
+                return re.sub('s', '', w)
+            elif re.match('.*dd$', w):
+                return re.sub('dd$', 'd', w)
+            elif re.match('.*ll$', w):
+                return re.sub('ll$', 'l', w)
+            else:
+                pass
+        if step1b2ing:
+            if re.match('.*at$', w):
+                return re.sub('at', 'ate', w)
+            elif re.match('.*bl$', w):
+                return re.sub('bl', 'ble', w)
+            elif re.match('.*iz$', w):
+                return re.sub('iz', 'ize', w)
+            elif re.match('.*s$', w):
+                return re.sub('s', '', w)
+            elif re.match('.*dd$', w):
+                return re.sub('dd$', 'd', w)
+            elif re.match('.*ll$', w):
+                return re.sub('ll$', 'l', w)
+            else:
+                pass
         else:
             pass
         return w
-
+    #getting rid of -y. and change it to i
     @staticmethod
     def _doStep1c(w):
         if re.match(f'.*{PorterStemmer._v()}y$', w):
             return re.sub('y$', 'i', w)
         return w
         
+    #getting rid of other suffixes
     @staticmethod
     def _doStep2(w):
         m = PorterStemmer._calculate_m(w)
@@ -112,6 +146,7 @@ class PorterStemmer:
             return re.sub('biliti$', 'ble', w)
         return w
         
+    #getting rid of more suffixes
     @staticmethod
     def _doStep3(w):
         m = PorterStemmer._calculate_m(w)
@@ -131,6 +166,7 @@ class PorterStemmer:
             return re.sub('ness$', '', w)
         return w
     
+    #getting rid of more suffixes
     @staticmethod
     def _doStep4(w):
         m = PorterStemmer._calculate_m(w)
@@ -171,15 +207,20 @@ class PorterStemmer:
         elif m > 1 and re.match('.*ize$', w):
             return re.sub('ize$', '', w)
         return w
-
+    
+    #removing final suffixes
     @staticmethod
     def _doStep5a(w):
         m = PorterStemmer._calculate_m(w)
-        if m > 1 and re.match('.*e$', w) and not re.match('.*o$', w[:-1]):
+        if m > 1 and re.match('.*e$', w):
+            return re.sub('e$', '', w)
+        elif m == 1 and re.match('.*e$', w) and not re.match('.*o$', w[:-1]):
             return re.sub('e$', '', w)
         else:
             return w
-    
+
+
+    #removing final suffixes
     @staticmethod
     def _doStep5b(w):
         m = PorterStemmer._calculate_m(w)
@@ -189,6 +230,7 @@ class PorterStemmer:
             return re.sub('ll$', 'l', w)
         return w
 
+    #steps to stem
     @staticmethod
     def stem(w):
         if len(w) < 3:
