@@ -116,8 +116,8 @@ class PorterStemmer:
             return re.sub('izer$', 'ize', w)
         elif m > 0 and re.match('.*abli$', w):
             return re.sub('abli$', 'able', w)
-        elif m > 0 and re.match('.*ali$', w):
-            return re.sub('ali$', 'al', w)
+        elif m > 0 and re.match('.*alli$', w):
+            return re.sub('alli$', 'al', w)
         elif m > 0 and re.match('.*entli$', w):
             return re.sub('entli$', 'ent', w)
         elif m > 0 and re.match('.*eli$', w):
@@ -126,8 +126,8 @@ class PorterStemmer:
             return re.sub('ousli$', 'ous', w)
         elif m > 0 and re.match('.*ization$', w):
             return re.sub('ization$', 'ize', w)
-        elif m > 0 and re.match('.*ations$', w):
-            return re.sub('ations$', 'ate', w)
+        elif m > 0 and re.match('.*ation$', w):
+            return re.sub('ation$', 'ate', w)
         elif m > 0 and re.match('.*ator$', w):
             return re.sub('ator$', 'ate', w)
         elif m > 0 and re.match('.*alism$', w):
@@ -153,7 +153,7 @@ class PorterStemmer:
         if m > 0 and re.match('.*icate$', w):
             return re.sub('icate$', 'ic', w)
         elif m > 0 and re.match('.*ative$', w):
-           return re.sub('itive$', '', w)
+           return re.sub('ative$', '', w)
         elif m > 0 and re.match('.*alize$', w):
             return re.sub('alize$', 'al', w)
         elif m > 0 and re.match('.*iciti$', w):
@@ -217,7 +217,8 @@ class PorterStemmer:
         elif m == 1 and re.match('.*e$', w) and not re.match('.*o$', w[:-1]):
             return re.sub('e$', '', w)
         else:
-            return w
+            pass
+        return w
 
 
     #removing final suffixes
