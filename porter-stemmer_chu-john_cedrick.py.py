@@ -243,14 +243,13 @@ stemmed_tokens = [porter.stem(token) for token in filtered_tokens]
 
 stemmed_text = ' '.join(stemmed_tokens)
 
-# Create a DataFrame to store the stemmed data
+# I removed the first 4 words in the csv file and add it in the DataFrame instead.
 processed_df = pd.DataFrame({'instruction,context,response,category': [stemmed_text]})
 
 # Specify the path for the output CSV file
 output_file_path = 'stemmed-dataset_15k-rows_chu-john_cedrick.csv'
 
 try:
-    # Write the stemmed data to the output CSV file with UTF-8 encoding
     processed_df.to_csv(output_file_path, index=False, encoding='utf-8')
     print(f"Stemmed data has been written to {output_file_path}")
 except Exception as e:
