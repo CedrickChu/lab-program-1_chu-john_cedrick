@@ -9,7 +9,7 @@ class PorterStemmer:
     def _c():
         return '[^aeiou]'
     
-     #A Vowel will be donoted as v
+    #A Vowel will be donoted as v
     @staticmethod
     def _v():
         return '[aeiouy]'
@@ -23,6 +23,25 @@ class PorterStemmer:
     @staticmethod
     def _V():
         return f'{PorterStemmer._v()}+'
+    
+    #*o - the stem ends cvc, where the second c is not W, X or Y (e.g. -WIL, -HOP).
+    @staticmethod
+    def _apply_cvc_rule(w):
+        if len(w) >= 3:
+            secondC = re.search(f'.*{PorterStemmer._c()}{PorterStemmer._v()}{PorterStemmer._c()}$', w)
+            if secondC:
+                secondC = secondC.group()
+                if secondC[-1] != 'w' or secondC[-1] != 'x' or secondC[-1] != 'y':
+                    return True
+                else:
+                    return False
+        return False
+
+    @staticmethod
+    def _apply_d_rule(w):
+        if len(w) >= 2
+         pattern = r'(\w)([^LSZ])\1$'
+
 
     #m is the number of consecutive _VC in the word
     @staticmethod
@@ -73,6 +92,8 @@ class PorterStemmer:
                 return re.sub('dd$', 'd', w)
             elif re.match('.*ll$', w):
                 return re.sub('ll$', 'l', w)
+            elif m == 1 and PorterStemmer._apply_cvc_rule(w):
+                return w
             else:
                 pass
         if step1b2ing:
@@ -88,11 +109,14 @@ class PorterStemmer:
                 return re.sub('dd$', 'd', w)
             elif re.match('.*ll$', w):
                 return re.sub('ll$', 'l', w)
+            elif m == 1 and PorterStemmer._apply_cvc_rule(w):
+                return w
             else:
                 pass
         else:
             pass
         return w
+    
     #getting rid of -y. and change it to i
     @staticmethod
     def _doStep1c(w):
@@ -116,8 +140,8 @@ class PorterStemmer:
             return re.sub('izer$', 'ize', w)
         elif m > 0 and re.match('.*abli$', w):
             return re.sub('abli$', 'able', w)
-        elif m > 0 and re.match('.*alli$', w):
-            return re.sub('alli$', 'al', w)
+        elif m > 0 and re.match('.*ali$', w):
+            return re.sub('ali$', 'al', w)
         elif m > 0 and re.match('.*entli$', w):
             return re.sub('entli$', 'ent', w)
         elif m > 0 and re.match('.*eli$', w):
@@ -126,8 +150,8 @@ class PorterStemmer:
             return re.sub('ousli$', 'ous', w)
         elif m > 0 and re.match('.*ization$', w):
             return re.sub('ization$', 'ize', w)
-        elif m > 0 and re.match('.*ation$', w):
-            return re.sub('ation$', 'ate', w)
+        elif m > 0 and re.match('.*ations$', w):
+            return re.sub('ations$', 'ate', w)
         elif m > 0 and re.match('.*ator$', w):
             return re.sub('ator$', 'ate', w)
         elif m > 0 and re.match('.*alism$', w):
@@ -153,7 +177,7 @@ class PorterStemmer:
         if m > 0 and re.match('.*icate$', w):
             return re.sub('icate$', 'ic', w)
         elif m > 0 and re.match('.*ative$', w):
-           return re.sub('ative$', '', w)
+           return re.sub('itive$', '', w)
         elif m > 0 and re.match('.*alize$', w):
             return re.sub('alize$', 'al', w)
         elif m > 0 and re.match('.*iciti$', w):
@@ -208,17 +232,19 @@ class PorterStemmer:
             return re.sub('ize$', '', w)
         return w
     
-    #removing final suffixes
+    #(m>1) E -> (Example : probate -> probat ; rate -> rate)
+    #(m=1 and not *o) E -> (Example : cease -> ceas) where *o is word that ends with cvc
     @staticmethod
     def _doStep5a(w):
         m = PorterStemmer._calculate_m(w)
         if m > 1 and re.match('.*e$', w):
             return re.sub('e$', '', w)
-        elif m == 1 and re.match('.*e$', w) and not re.match('.*o$', w[:-1]):
-            return re.sub('e$', '', w)
+        elif m == 1 and re.match('.*e$', w) and not PorterStemmer._apply_cvc_rule(w):
+            return w
         else:
             pass
         return w
+
 
 
     #removing final suffixes
@@ -273,7 +299,7 @@ with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8"
         for cell in row:
             # Tokenize the text by splitting on spaces and removing punctuation
             cell_tokens = re.findall(r'\b\w+\b', cell.lower())
-            
+
             # Filter out stopwords
             filtered_cell_tokens = [token for token in cell_tokens if token not in stopwords]
             
