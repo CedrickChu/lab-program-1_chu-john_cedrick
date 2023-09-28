@@ -266,7 +266,7 @@ class PorterStemmer:
             w = step(w)
         return w
     
-
+    
 porter = PorterStemmer()
 
 # Create a set of stopwords
@@ -274,28 +274,25 @@ porter = PorterStemmer()
 #stopwords = set()
 
 # Open the stopwords file with UTF-8 encoding
-#ith open("stopwords.txt", "r", encoding="utf-8") as stopword_file:
+#with open("stopwords.txt", "r", encoding="utf-8") as stopword_file:
     #stopwords.update(line.strip() for line in stopword_file)
+    
 def main():
-    porter = PorterStemmer()
-
     try:
         filtered_tokens = []
+        special_character = r'[\.,?"<>-]'
 
         with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8") as file: 
             csv_reader = csv.reader(file)
             
             for row in csv_reader:
                 for cell in row:
-                    # Tokenize the text using regular expressions to include specified characters
-                    cell_tokens = re.findall(r'\b\w+\b|[\.,?"<>-]', cell.lower())
-                    
-                    # Filter out stopwords
-                    filtered_cell_tokens = cell_tokens
-                    filtered_tokens.extend(filtered_cell_tokens)
+                    # Tokenize the text using regular expression
+                    cell_tokens = re.findall(r'\b\w+\b|' + special_character, cell.lower())
+                    filtered_tokens.extend(cell_tokens)
 
-        # Perform stemming on filtered tokens
-        stemmed_tokens = [porter.stem(token) if token.isalnum() else token for token in filtered_tokens]
+        # Perform stemming on filtered tokens 
+        stemmed_tokens = [porter.stem(token) for token in filtered_tokens]
 
         # Join the stemmed tokens back into a text string
         stemmed_text = ' '.join(stemmed_tokens)
@@ -313,4 +310,5 @@ def main():
         print(f"An error occurred: {str(e)}")
 
 if __name__ == "__main__":
+    porter = PorterStemmer()
     main()
