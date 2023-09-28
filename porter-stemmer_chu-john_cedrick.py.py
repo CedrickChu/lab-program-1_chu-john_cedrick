@@ -41,7 +41,10 @@ class PorterStemmer:
     @staticmethod
     def _apply_d_rule(w):
         if len(w) >= 2:
-            return w[-2:] == w[-1] * 2
+            return w[-2:] == w[-1:]
+        else:
+            return False
+        
 
 
     #m is the number of consecutive _VC in the word
@@ -94,9 +97,9 @@ class PorterStemmer:
             #(*d and not (*L or *S or *Z)) -> single letter (Example : hopp(ing) -> hop ; tann(ed) -> tan ; fall(ing) -> fall ; hiss(ing) -> hiss ; fizz(ed) -> fizz)
             elif PorterStemmer._apply_d_rule(w) and w[-1] not in ('L', 'S', 'Z'): 
                 return w[-1]
-             #(m=1 and *o) -> E (Example : fail(ing) -> fail ; fil(ing) -> file)
-            elif m == 1 and PorterStemmer._apply_cvc_rule(w):
-                return w
+            #(m=1 and *o) -> E (Example : fail(ing) -> fail ; fil(ing) -> file)
+            elif m == 1 or PorterStemmer._apply_cvc_rule(w):
+                return w + 'e'
             else:
                 pass
         return w
@@ -105,7 +108,7 @@ class PorterStemmer:
     #getting rid of -y. and change it to i
     @staticmethod
     def _doStep1c(w):
-        if re.match(f'.*{PorterStemmer._v()}y$', w):
+        if re.match(f'.*{PorterStemmer._v()}*y$', w):
             return re.sub('y$', 'i', w)
         return w
         
@@ -284,6 +287,7 @@ with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8"
     for row in csv_reader:
         for cell in row:
             # Tokenize the text by splitting on spaces and removing punctuation
+
             cell_tokens = re.findall(r'\b\w+\b', cell.lower())
             
             # Filter out stopwords
