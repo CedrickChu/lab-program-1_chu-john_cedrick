@@ -271,11 +271,11 @@ porter = PorterStemmer()
 
 # Create a set of stopwords
 # removing my stopwords.txt to make my output the same as the expected output
-stopwords = set()
+#stopwords = set()
 
 # Open the stopwords file with UTF-8 encoding
-with open("stopwords.txt", "r", encoding="utf-8") as stopword_file:
-    stopwords.update(line.strip() for line in stopword_file)
+#ith open("stopwords.txt", "r", encoding="utf-8") as stopword_file:
+    #stopwords.update(line.strip() for line in stopword_file)
 
 # Create an empty list to store the filtered tokens
 filtered_tokens = []
@@ -291,8 +291,7 @@ with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8"
             cell_tokens = re.findall(r'\b\w+\b', cell.lower())
             
             # Filter out stopwords
-            filtered_cell_tokens = [token for token in cell_tokens if token not in stopwords]
-            
+            filtered_cell_tokens = cell_tokens
             filtered_tokens.extend(filtered_cell_tokens)
 
 # Perform stemming on filtered tokens
