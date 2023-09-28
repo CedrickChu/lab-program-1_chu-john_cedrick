@@ -37,10 +37,11 @@ class PorterStemmer:
                     return False
         return False
 
+    #*d - the stem ends with a double consonant (e.g. -TT, -SS).
     @staticmethod
     def _apply_d_rule(w):
-        if len(w) >= 2
-         pattern = r'(\w)([^LSZ])\1$'
+        if len(w) >= 2:
+            return w[-2:] == w[-1] * 2
 
 
     #m is the number of consecutive _VC in the word
@@ -71,6 +72,7 @@ class PorterStemmer:
         m = PorterStemmer._calculate_m(w)
         step1b2ed = False
         step1b2ing = False
+        
         if re.match('.*eed$', w) and m > 0:
             return re.sub('eed$', 'ee', w)
         elif re.match(f'.*{PorterStemmer._v()}*ed$', w) and m > 0:
@@ -79,7 +81,8 @@ class PorterStemmer:
         elif re.match(f'.*{PorterStemmer._v()}*ing$', w) and m > 0:
             step1b2ing = True
             w = re.sub('ing$', '', w)
-        if step1b2ed:
+
+        if step1b2ed or step1b2ing:
             if re.match('.*at$', w):
                 return re.sub('at', 'ate', w)
             elif re.match('.*bl$', w):
@@ -88,34 +91,14 @@ class PorterStemmer:
                 return re.sub('iz', 'ize', w)
             elif re.match('.*s$', w):
                 return re.sub('s', '', w)
-            elif re.match('.*dd$', w):
-                return re.sub('dd$', 'd', w)
-            elif re.match('.*ll$', w):
-                return re.sub('ll$', 'l', w)
+            #(*d and not (*L or *S or *Z)) -> single letter (Example : hopp(ing) -> hop ; tann(ed) -> tan ; fall(ing) -> fall ; hiss(ing) -> hiss ; fizz(ed) -> fizz)
+            elif PorterStemmer._apply_d_rule(w) and w[-1] not in ('L', 'S', 'Z'): 
+                return w[-1]
+             #(m=1 and *o) -> E (Example : fail(ing) -> fail ; fil(ing) -> file)
             elif m == 1 and PorterStemmer._apply_cvc_rule(w):
                 return w
-            else:
-                pass
-        if step1b2ing:
-            if re.match('.*at$', w):
-                return re.sub('at', 'ate', w)
-            elif re.match('.*bl$', w):
-                return re.sub('bl', 'ble', w)
-            elif re.match('.*iz$', w):
-                return re.sub('iz', 'ize', w)
-            elif re.match('.*s$', w):
-                return re.sub('s', '', w)
-            elif re.match('.*dd$', w):
-                return re.sub('dd$', 'd', w)
-            elif re.match('.*ll$', w):
-                return re.sub('ll$', 'l', w)
-            elif m == 1 and PorterStemmer._apply_cvc_rule(w):
-                return w
-            else:
-                pass
-        else:
-            pass
         return w
+
     
     #getting rid of -y. and change it to i
     @staticmethod
@@ -140,8 +123,8 @@ class PorterStemmer:
             return re.sub('izer$', 'ize', w)
         elif m > 0 and re.match('.*abli$', w):
             return re.sub('abli$', 'able', w)
-        elif m > 0 and re.match('.*ali$', w):
-            return re.sub('ali$', 'al', w)
+        elif m > 0 and re.match('.*alli$', w):
+            return re.sub('alli$', 'al', w)
         elif m > 0 and re.match('.*entli$', w):
             return re.sub('entli$', 'ent', w)
         elif m > 0 and re.match('.*eli$', w):
@@ -150,8 +133,8 @@ class PorterStemmer:
             return re.sub('ousli$', 'ous', w)
         elif m > 0 and re.match('.*ization$', w):
             return re.sub('ization$', 'ize', w)
-        elif m > 0 and re.match('.*ations$', w):
-            return re.sub('ations$', 'ate', w)
+        elif m > 0 and re.match('.*ation$', w):
+            return re.sub('ation$', 'ate', w)
         elif m > 0 and re.match('.*ator$', w):
             return re.sub('ator$', 'ate', w)
         elif m > 0 and re.match('.*alism$', w):
@@ -177,7 +160,7 @@ class PorterStemmer:
         if m > 0 and re.match('.*icate$', w):
             return re.sub('icate$', 'ic', w)
         elif m > 0 and re.match('.*ative$', w):
-           return re.sub('itive$', '', w)
+           return re.sub('ative$', '', w)
         elif m > 0 and re.match('.*alize$', w):
             return re.sub('alize$', 'al', w)
         elif m > 0 and re.match('.*iciti$', w):
@@ -292,21 +275,20 @@ with open("stopwords.txt", "r", encoding="utf-8") as stopword_file:
 filtered_tokens = []
 
 # Open the CSV file with UTF-8 encoding
-with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8") as file:  # Corrected the filename
+with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8") as file: 
     csv_reader = csv.reader(file)
     
     for row in csv_reader:
         for cell in row:
             # Tokenize the text by splitting on spaces and removing punctuation
             cell_tokens = re.findall(r'\b\w+\b', cell.lower())
-
+            
             # Filter out stopwords
             filtered_cell_tokens = [token for token in cell_tokens if token not in stopwords]
             
             filtered_tokens.extend(filtered_cell_tokens)
 
 # Perform stemming on filtered tokens
-
 stemmed_tokens = [porter.stem(token) for token in filtered_tokens]
 
 
