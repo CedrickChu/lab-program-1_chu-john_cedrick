@@ -276,38 +276,41 @@ porter = PorterStemmer()
 # Open the stopwords file with UTF-8 encoding
 #ith open("stopwords.txt", "r", encoding="utf-8") as stopword_file:
     #stopwords.update(line.strip() for line in stopword_file)
+def main():
+    porter = PorterStemmer()
 
-# Create an empty list to store the filtered tokens
-filtered_tokens = []
+    try:
+        filtered_tokens = []
 
-# Open the CSV file with UTF-8 encoding
-with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8") as file: 
-    csv_reader = csv.reader(file)
-    
-    for row in csv_reader:
-        for cell in row:
-            # Tokenize the text by splitting on spaces and removing punctuation
-
-            cell_tokens = re.findall(r'\b\w+\b', cell.lower())
+        with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8") as file: 
+            csv_reader = csv.reader(file)
             
-            # Filter out stopwords
-            filtered_cell_tokens = cell_tokens
-            filtered_tokens.extend(filtered_cell_tokens)
+            for row in csv_reader:
+                for cell in row:
+                    # Tokenize the text using regular expressions to include specified characters
+                    cell_tokens = re.findall(r'\b\w+\b|[\.,?"<>-]', cell.lower())
+                    
+                    # Filter out stopwords
+                    filtered_cell_tokens = cell_tokens
+                    filtered_tokens.extend(filtered_cell_tokens)
 
-# Perform stemming on filtered tokens
-stemmed_tokens = [porter.stem(token) for token in filtered_tokens]
+        # Perform stemming on filtered tokens
+        stemmed_tokens = [porter.stem(token) if token.isalnum() else token for token in filtered_tokens]
 
+        # Join the stemmed tokens back into a text string
+        stemmed_text = ' '.join(stemmed_tokens)
 
-stemmed_text = ' '.join(stemmed_tokens)
+        # Create a DataFrame with the stemmed text
+        data = 'instruction,context,response,category'
+        processed_df = pd.DataFrame({data: [stemmed_text]})
 
-# I removed the first 4 words in the csv file and add it in the DataFrame instead.
-processed_df = pd.DataFrame({'instruction,context,response,category': [stemmed_text]})
+        # Specify the path for the output CSV file
+        output_file_path = 'stemmed-dataset_15k-rows_chu-john_cedrick.csv'
 
-# Specify the path for the output CSV file
-output_file_path = 'stemmed-dataset_15k-rows_chu-john_cedrick.csv'
+        processed_df.to_csv(output_file_path, index=False, encoding='utf-8')
+        print(f"Stemmed data has been written to {output_file_path}")
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
 
-try:
-    processed_df.to_csv(output_file_path, index=False, encoding='utf-8')
-    print(f"Stemmed data has been written to {output_file_path}")
-except Exception as e:
-    print(f"An error occurred: {str(e)}")
+if __name__ == "__main__":
+    main()
