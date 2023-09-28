@@ -75,13 +75,15 @@ class PorterStemmer:
         
         if re.match('.*eed$', w) and m > 0:
             return re.sub('eed$', 'ee', w)
+        #(*v*) ED  
         elif re.match(f'.*{PorterStemmer._v()}*ed$', w) and m > 0:
             w = re.sub('ed$', '', w)
             step1b2ed = True
+        #(*v*) ING
         elif re.match(f'.*{PorterStemmer._v()}*ing$', w) and m > 0:
             step1b2ing = True
             w = re.sub('ing$', '', w)
-
+    
         if step1b2ed or step1b2ing:
             if re.match('.*at$', w):
                 return re.sub('at', 'ate', w)
@@ -89,14 +91,14 @@ class PorterStemmer:
                 return re.sub('bl', 'ble', w)
             elif re.match('.*iz$', w):
                 return re.sub('iz', 'ize', w)
-            elif re.match('.*s$', w):
-                return re.sub('s', '', w)
             #(*d and not (*L or *S or *Z)) -> single letter (Example : hopp(ing) -> hop ; tann(ed) -> tan ; fall(ing) -> fall ; hiss(ing) -> hiss ; fizz(ed) -> fizz)
             elif PorterStemmer._apply_d_rule(w) and w[-1] not in ('L', 'S', 'Z'): 
                 return w[-1]
              #(m=1 and *o) -> E (Example : fail(ing) -> fail ; fil(ing) -> file)
             elif m == 1 and PorterStemmer._apply_cvc_rule(w):
                 return w
+            else:
+                pass
         return w
 
     
@@ -197,6 +199,7 @@ class PorterStemmer:
             return re.sub('ement$', '', w)
         elif m > 1 and re.match('.*ment$', w):
             return re.sub('ment$', '', w)
+        #(m>1 and (*S or *T)) ION -> (Example : adoption -> adopt; repulsion -> repuls)
         elif m > 1 and re.match('.*(sion|tion)$', w):
             return re.sub('(sion|tion)$', '', w)
         elif m > 1 and re.match('.*ou$', w):
@@ -215,7 +218,7 @@ class PorterStemmer:
             return re.sub('ize$', '', w)
         return w
     
-    #(m>1) E -> (Example : probate -> probat ; rate -> rate)
+    #(m>1) E -> (Example : trade -> trad; name -> name)
     #(m=1 and not *o) E -> (Example : cease -> ceas) where *o is word that ends with cvc
     @staticmethod
     def _doStep5a(w):
