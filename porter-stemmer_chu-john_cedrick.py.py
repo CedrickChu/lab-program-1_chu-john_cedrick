@@ -294,7 +294,8 @@ def main():
     try:
         with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8") as file:
             csv_reader = csv.reader(file)
-            
+            next(csv_reader)
+   
 
             # Create an empty list to store the stemmed paragraphs
             stemmed_paragraphs = []
@@ -307,7 +308,7 @@ def main():
 
 
             # Create a DataFrame with the stemmed paragraphs
-            processed_df = pd.DataFrame(stemmed_paragraphs)
+            processed_df = pd.DataFrame(stemmed_paragraphs, columns=['instruction', 'context', 'response', 'category'])
 
             # Specify the path for the output CSV file
             output_file_path = 'stemmed-dataset_15k-rows_chu-john_cedrick.csv'
