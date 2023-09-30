@@ -280,33 +280,32 @@ porter = PorterStemmer()
 # Create an empty list to store the filtered tokens
 def main():
     try:
-        filtered_tokens = []
-
-        with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8") as file: 
+        with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8") as file:
             csv_reader = csv.reader(file)
-            pattern = r'\b\w+\b|[\.,?"<>-]'
-            
+
+            # Create an empty list to store the stemmed paragraphs
+            stemmed_paragraphs = []
+
             for row in csv_reader:
+                stemmed_row = []
                 for cell in row:
                     # Tokenize the text using regular expression
-                    cell_tokens = re.findall(pattern, cell.lower())
-                    filtered_tokens.extend(cell_tokens)
+      
+                    cell_tokens = re.findall(r'\b\w+\b|[\'.,?"<>-]', cell.lower())
+                    # Perform stemming on filtered tokens
+                    stemmed_tokens = [porter.stem(token) for token in cell_tokens]
+                    stemmed_paragraph = ' '.join(stemmed_tokens)
+                    stemmed_row.append(stemmed_paragraph)
+                stemmed_paragraphs.append(stemmed_row)
 
-        # Perform stemming on filtered tokens 
-        stemmed_tokens = [porter.stem(token) for token in filtered_tokens]
+            # Create a DataFrame with the stemmed paragraphs
+            processed_df = pd.DataFrame(stemmed_paragraphs, columns=['instruction', 'context', 'response', 'category', ',', ',', ','])
 
-        # Join the stemmed tokens back into a text string
-        stemmed_text = ' '.join(stemmed_tokens)
+            # Specify the path for the output CSV file
+            output_file_path = 'stemmed-dataset_15k-rows_chu-john_cedrick.csv'
 
-        # Create a DataFrame with the stemmed text
-        data = 'instruction,context,response,category'
-        processed_df = pd.DataFrame({data: [stemmed_text]})
-
-        # Specify the path for the output CSV file
-        output_file_path = 'stemmed-dataset_15k-rows_chu-john_cedrick.csv'
-
-        processed_df.to_csv(output_file_path, index=False, encoding='utf-8')
-        print(f"Stemmed data has been written to {output_file_path}")
+            processed_df.to_csv(output_file_path, index=False, encoding='utf-8')
+            print(f"Stemmed data has been written to {output_file_path}")
     except Exception as e:
         print(f"An error occurred: {str(e)}")
 
