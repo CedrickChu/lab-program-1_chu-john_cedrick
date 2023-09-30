@@ -266,7 +266,7 @@ class PorterStemmer:
             w = step(w)
         return w
     
-    
+
 porter = PorterStemmer()
 
 # Create a set of stopwords
@@ -274,21 +274,22 @@ porter = PorterStemmer()
 #stopwords = set()
 
 # Open the stopwords file with UTF-8 encoding
-#with open("stopwords.txt", "r", encoding="utf-8") as stopword_file:
+#ith open("stopwords.txt", "r", encoding="utf-8") as stopword_file:
     #stopwords.update(line.strip() for line in stopword_file)
-    
+
+# Create an empty list to store the filtered tokens
 def main():
     try:
         filtered_tokens = []
-        special_character = r'[\.,?"<>-]'
 
         with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8") as file: 
             csv_reader = csv.reader(file)
+            pattern = r'\b\w+\b|[\.,?"<>-]'
             
             for row in csv_reader:
                 for cell in row:
                     # Tokenize the text using regular expression
-                    cell_tokens = re.findall(r'\b\w+\b|' + special_character, cell.lower())
+                    cell_tokens = re.findall(pattern, cell.lower())
                     filtered_tokens.extend(cell_tokens)
 
         # Perform stemming on filtered tokens 
