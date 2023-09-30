@@ -1,6 +1,10 @@
+from doctest import OutputChecker
 import re
 import csv
 import pandas as pd
+from multiprocessing import Pool
+import sys
+
 
 
 class PorterStemmer:
@@ -277,29 +281,33 @@ porter = PorterStemmer()
 #ith open("stopwords.txt", "r", encoding="utf-8") as stopword_file:
     #stopwords.update(line.strip() for line in stopword_file)
 
-# Create an empty list to store the filtered tokens
+def stem_cell(cell):
+    cell_tokens = re.findall(r'\b\w+\b|[\'.,?"<>-]', cell.lower())
+    stemmed_tokens = [porter.stem(token) for token in cell_tokens]
+    return ' '.join(stemmed_tokens)
+
+def process_row(row):
+    stemmed_row = [stem_cell(cell) for cell in row]
+    return stemmed_row
+
 def main():
     try:
         with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8") as file:
             csv_reader = csv.reader(file)
+            next(csv_reader)
 
             # Create an empty list to store the stemmed paragraphs
             stemmed_paragraphs = []
 
-            for row in csv_reader:
-                stemmed_row = []
-                for cell in row:
-                    # Tokenize the text using regular expression
-      
-                    cell_tokens = re.findall(r'\b\w+\b|[\'.,?"<>-]', cell.lower())
-                    # Perform stemming on filtered tokens
-                    stemmed_tokens = [porter.stem(token) for token in cell_tokens]
-                    stemmed_paragraph = ' '.join(stemmed_tokens)
-                    stemmed_row.append(stemmed_paragraph)
-                stemmed_paragraphs.append(stemmed_row)
+
+            # Create a Pool of worker processes for parallel processing
+            with Pool() as pool:
+                for stemmed_row in pool.imap(process_row, csv_reader):
+                    stemmed_paragraphs.append(stemmed_row)
+
 
             # Create a DataFrame with the stemmed paragraphs
-            processed_df = pd.DataFrame(stemmed_paragraphs, columns=['instruction', 'context', 'response', 'category', ',', ',', ','])
+            processed_df = pd.DataFrame(stemmed_paragraphs)
 
             # Specify the path for the output CSV file
             output_file_path = 'stemmed-dataset_15k-rows_chu-john_cedrick.csv'
