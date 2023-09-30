@@ -294,7 +294,7 @@ def main():
     try:
         with open('4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv', 'r', encoding="utf-8") as file:
             csv_reader = csv.reader(file)
-            next(csv_reader)
+            
 
             # Create an empty list to store the stemmed paragraphs
             stemmed_paragraphs = []
