@@ -32,10 +32,9 @@ class PorterStemmer:
     @staticmethod
     def _apply_cvc_rule(w):
         if len(w) >= 3:
-            secondC = re.search(f'.*{PorterStemmer._c()}{PorterStemmer._v()}{PorterStemmer._c()}$', w)
-            if secondC:
-                secondC = secondC.group()
-                if secondC[-1] != 'w' or secondC[-1] != 'x' or secondC[-1] != 'y':
+            cvc = re.search(f'.*{PorterStemmer._C()}{PorterStemmer._V()}{PorterStemmer._C()}$', w)
+            if cvc:
+                if w[-1] != 'w' or w[-1] != 'x' or w[-1] != 'y':
                     return True
                 else:
                     return False
@@ -77,21 +76,20 @@ class PorterStemmer:
     @staticmethod
     def _doStep1b(w):
         m = PorterStemmer._calculate_m(w)
-        step1b2ed = False
-        step1b2ing = False
+        isTrue = False
         
         if re.match('.*eed$', w) and m > 0:
             return re.sub('eed$', 'ee', w)
         #(*v*) ED  
-        elif re.match(f'.*{PorterStemmer._v()}*ed$', w) and m > 0:
+        elif m > 0 and re.match(f'.*{PorterStemmer._v()}ed$', w):
             w = re.sub('ed$', '', w)
-            step1b2ed = True
+            isTrue = True
         #(*v*) ING
-        elif re.match(f'.*{PorterStemmer._v()}*ing$', w) and m > 0:
-            step1b2ing = True
+        elif m > 0 and re.match(f'.*{PorterStemmer._v()}ing$', w):
             w = re.sub('ing$', '', w)
+            isTrue = True
     
-        if step1b2ed or step1b2ing:
+        if isTrue:
             if re.match('.*at$', w):
                 return re.sub('at', 'ate', w)
             elif re.match('.*bl$', w):
@@ -106,6 +104,8 @@ class PorterStemmer:
                 return w + 'e'
             else:
                 pass
+        else:
+            pass
         return w
 
     
@@ -237,7 +237,6 @@ class PorterStemmer:
         else:
             pass
         return w
-
 
 
     #removing final suffixes
