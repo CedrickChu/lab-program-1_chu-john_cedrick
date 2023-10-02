@@ -83,7 +83,7 @@ class PorterStemmer:
         if re.match('.*eed$', w) and m > 0:
             return re.sub('eed$', 'ee', w)
         #(*v*) ED  
-        elif re.match(f'.*{PorterStemmer._v()}*ed$', w) and m > 0:
+        elif re.match(f'.*{PorterStemmer._v()}ed$', w) and m > 0:
             w = re.sub('ed$', '', w)
             step1b2ed = True
         #(*v*) ING
