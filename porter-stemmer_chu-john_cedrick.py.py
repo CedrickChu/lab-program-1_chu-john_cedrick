@@ -49,8 +49,6 @@ class PorterStemmer:
         else:
             return False
         
-
-
     #m is the number of consecutive _VC in the word
     @staticmethod
     def _calculate_m(w):
@@ -82,14 +80,17 @@ class PorterStemmer:
         
         if re.match('.*eed$', w) and m > 0:
             return re.sub('eed$', 'ee', w)
+
         #(*v*) ED  
-        elif re.match(f'.*{PorterStemmer._v()}ed$', w) and m > 0:
+        elif m > 0 and re.match(f'{PorterStemmer._v()}.*ed$', w):
             w = re.sub('ed$', '', w)
             step1b2ed = True
         #(*v*) ING
-        elif re.match(f'.*{PorterStemmer._v()}*ing$', w) and m > 0:
-            step1b2ing = True
+        elif m > 0 and re.match(f'{PorterStemmer._v()}.*ing$', w):
             w = re.sub('ing$', '', w)
+            step1b2ing = True
+        else:
+            return w
     
         if step1b2ed or step1b2ing:
             if re.match('.*at$', w):
@@ -112,9 +113,10 @@ class PorterStemmer:
     #getting rid of -y. and change it to i
     @staticmethod
     def _doStep1c(w):
-        if re.match(f'.*{PorterStemmer._v()}*y$', w):
+        if re.match(f'{PorterStemmer._v()}.*y$', w):
             return re.sub('y$', 'i', w)
-        return w
+        else:
+            return w
         
     #getting rid of other suffixes
     @staticmethod
@@ -318,5 +320,4 @@ def main():
         print(f"An error occurred: {str(e)}")
 
 if __name__ == "__main__":
-    porter = PorterStemmer()
     main()
