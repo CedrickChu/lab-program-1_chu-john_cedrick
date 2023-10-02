@@ -38,8 +38,9 @@ class PorterStemmer:
                     return True
                 else:
                     return False
-        return False
-
+        else:
+            return False
+  
     #*d - the stem ends with a double consonant (e.g. -TT, -SS).
     @staticmethod
     def _apply_d_rule(w):
@@ -76,20 +77,21 @@ class PorterStemmer:
     @staticmethod
     def _doStep1b(w):
         m = PorterStemmer._calculate_m(w)
-        isTrue = False
+        step1b2ed = False
+        step1b2ing = False
         
         if re.match('.*eed$', w) and m > 0:
             return re.sub('eed$', 'ee', w)
         #(*v*) ED  
-        elif m > 0 and re.match(f'.*{PorterStemmer._v()}ed$', w):
+        elif re.match(f'.*{PorterStemmer._v()}*ed$', w) and m > 0:
             w = re.sub('ed$', '', w)
-            isTrue = True
+            step1b2ed = True
         #(*v*) ING
-        elif m > 0 and re.match(f'.*{PorterStemmer._v()}ing$', w):
+        elif re.match(f'.*{PorterStemmer._v()}*ing$', w) and m > 0:
+            step1b2ing = True
             w = re.sub('ing$', '', w)
-            isTrue = True
     
-        if isTrue:
+        if step1b2ed or step1b2ing:
             if re.match('.*at$', w):
                 return re.sub('at', 'ate', w)
             elif re.match('.*bl$', w):
@@ -104,8 +106,6 @@ class PorterStemmer:
                 return w + 'e'
             else:
                 pass
-        else:
-            pass
         return w
 
     
