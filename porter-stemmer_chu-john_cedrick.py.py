@@ -48,6 +48,11 @@ class PorterStemmer:
             return w[-2:] == w[-1:]
         else:
             return False
+
+    def has_vowel(w):
+        if re.search(r'[aeiouy]', w[:-3]):
+            return True
+        return False
         
     #m is the number of consecutive _VC in the word
     @staticmethod
@@ -70,50 +75,67 @@ class PorterStemmer:
         else:
             pass
         return w
+
+
     
+    # getting rid of -eed. -ed. -ing. etc.
     # getting rid of -eed. -ed. -ing. etc.
     @staticmethod
     def _doStep1b(w):
         m = PorterStemmer._calculate_m(w)
         step1b2ed = False
         step1b2ing = False
-        
         if re.match('.*eed$', w) and m > 0:
             return re.sub('eed$', 'ee', w)
-
-        #(*v*) ED  
-        elif m > 0 and re.match(f'{PorterStemmer._v()}.*ed$', w):
+        elif PorterStemmer.has_vowel(w) and re.match('.*ed$', w):
             w = re.sub('ed$', '', w)
             step1b2ed = True
-        #(*v*) ING
-        elif m > 0 and re.match(f'{PorterStemmer._v()}.*ing$', w):
+        elif PorterStemmer.has_vowel(w) and re.match('.*ing$', w):
             w = re.sub('ing$', '', w)
             step1b2ing = True
-        else:
-            return w
-    
-        if step1b2ed or step1b2ing:
+        if step1b2ed:
             if re.match('.*at$', w):
                 return re.sub('at', 'ate', w)
             elif re.match('.*bl$', w):
                 return re.sub('bl', 'ble', w)
             elif re.match('.*iz$', w):
                 return re.sub('iz', 'ize', w)
-            #(*d and not (*L or *S or *Z)) -> single letter (Example : hopp(ing) -> hop ; tann(ed) -> tan ; fall(ing) -> fall ; hiss(ing) -> hiss ; fizz(ed) -> fizz)
-            elif PorterStemmer._apply_d_rule(w) and w[-1] not in ('L', 'S', 'Z'): 
-                return w[-1]
-            #(m=1 and *o) -> E (Example : fail(ing) -> fail ; fil(ing) -> file)
-            elif m == 1 or PorterStemmer._apply_cvc_rule(w):
-                return w + 'e'
+            elif re.match('.*s$', w):
+                return re.sub('s', '', w)
+            elif re.match('.*dd$', w):
+                return re.sub('dd$', 'd', w)
+            elif re.match('.*ll$', w):
+                return re.sub('ll$', 'l', w)
+            elif m == 1 and PorterStemmer._apply_cvc_rule(w):
+                return w
             else:
                 pass
+        if step1b2ing:
+            if re.match('.*at$', w):
+                return re.sub('at', 'ate', w)
+            elif re.match('.*bl$', w):
+                return re.sub('bl', 'ble', w)
+            elif re.match('.*iz$', w):
+                return re.sub('iz', 'ize', w)
+            elif re.match('.*s$', w):
+                return re.sub('s', '', w)
+            elif re.match('.*dd$', w):
+                return re.sub('dd$', 'd', w)
+            elif re.match('.*ll$', w):
+                return re.sub('ll$', 'l', w)
+            elif m == 1 and PorterStemmer._apply_cvc_rule(w):
+                return w
+            else:
+                pass
+        else:
+            pass
         return w
 
     
     #getting rid of -y. and change it to i
     @staticmethod
     def _doStep1c(w):
-        if re.match(f'{PorterStemmer._v()}.*y$', w):
+        if PorterStemmer.has_vowel(w) and re.match('.*y$', w):
             return re.sub('y$', 'i', w)
         else:
             return w
@@ -209,8 +231,11 @@ class PorterStemmer:
         elif m > 1 and re.match('.*ment$', w):
             return re.sub('ment$', '', w)
         #(m>1 and (*S or *T)) ION -> (Example : adoption -> adopt; repulsion -> repuls)
-        elif m > 1 and re.match('.*(sion|tion)$', w):
-            return re.sub('(sion|tion)$', '', w)
+        elif m > 1 and re.match('.*sion$', w):
+            return re.sub('sion$', 's', w)
+        elif m > 1 and re.match('.*tion$', w):
+            return re.sub('tion$', 't', w)
+  
         elif m > 1 and re.match('.*ou$', w):
             return re.sub('ou$', '', w)
         elif m > 1 and re.match('.*ism$', w):
