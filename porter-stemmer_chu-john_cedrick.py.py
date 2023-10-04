@@ -90,10 +90,12 @@ class PorterStemmer:
         elif PorterStemmer.has_vowel(w) and re.match('.*ed$', w):
             w = re.sub('ed$', '', w)
             step1b2ed = True
+            
         elif PorterStemmer.has_vowel(w) and re.match('.*ing$', w):
             w = re.sub('ing$', '', w)
             step1b2ing = True
-        if step1b2ed:
+            
+        if step1b2ed and step1b2ing:
             if re.match('.*at$', w):
                 return re.sub('at', 'ate', w)
             elif re.match('.*bl$', w):
@@ -102,33 +104,13 @@ class PorterStemmer:
                 return re.sub('iz', 'ize', w)
             elif re.match('.*s$', w):
                 return re.sub('s', '', w)
-            elif re.match('.*dd$', w):
-                return re.sub('dd$', 'd', w)
-            elif re.match('.*ll$', w):
-                return re.sub('ll$', 'l', w)
+            #(*d and not (*L or *S or *Z)) -> single letter (Example : hopp(ing) -> hop ; tann(ed) -> tan ; fall(ing) -> fall ; hiss(ing) -> hiss ; fizz(ed) -> fizz)
+            elif PorterStemmer._apply_d_rule(w) and w[-1] not in ('L', 'S', 'Z'): 
+                return w[:-1]
             elif m == 1 and PorterStemmer._apply_cvc_rule(w):
                 return w
             else:
-                pass
-        if step1b2ing:
-            if re.match('.*at$', w):
-                return re.sub('at', 'ate', w)
-            elif re.match('.*bl$', w):
-                return re.sub('bl', 'ble', w)
-            elif re.match('.*iz$', w):
-                return re.sub('iz', 'ize', w)
-            elif re.match('.*s$', w):
-                return re.sub('s', '', w)
-            elif re.match('.*dd$', w):
-                return re.sub('dd$', 'd', w)
-            elif re.match('.*ll$', w):
-                return re.sub('ll$', 'l', w)
-            elif m == 1 and PorterStemmer._apply_cvc_rule(w):
                 return w
-            else:
-                pass
-        else:
-            pass
         return w
 
     
