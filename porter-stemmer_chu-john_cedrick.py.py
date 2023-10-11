@@ -95,7 +95,7 @@ class PorterStemmer:
             w = re.sub('ing$', '', w)
             step1b2ing = True
             
-        if step1b2ed and step1b2ing:
+        if step1b2ed or step1b2ing:
             if re.match('.*at$', w):
                 return re.sub('at', 'ate', w)
             elif re.match('.*bl$', w):
