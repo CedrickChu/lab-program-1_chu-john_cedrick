@@ -76,9 +76,6 @@ class PorterStemmer:
             pass
         return w
 
-
-    
-    # getting rid of -eed. -ed. -ing. etc.
     # getting rid of -eed. -ed. -ing. etc.
     @staticmethod
     def _doStep1b(w):
@@ -91,7 +88,7 @@ class PorterStemmer:
             w = re.sub('ed$', '', w)
             step1b2ed = True
             
-        elif PorterStemmer.has_vowel(w) and re.match('.*ing$', w):
+        elif PorterStemmer.has_vowel(w) or re.match('.*ing$', w):
             w = re.sub('ing$', '', w)
             step1b2ing = True
             
